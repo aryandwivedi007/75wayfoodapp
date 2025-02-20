@@ -34,7 +34,7 @@ A modern food ordering app built using **React, Tailwind CSS, Redux Toolkit, and
    ```
 3. **Start the development server**
    ```sh
-   npm start
+   npm run dev
    ```
 
 

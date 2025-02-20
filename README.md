@@ -9,7 +9,7 @@ A modern food ordering app built using **React, Tailwind CSS, Redux Toolkit, and
 - **Cart Management**: Users can add/remove items from the cart.
 - **Driver Management**: Simulated driver assignment system.
 - **Smooth Animations**: Uses Framer Motion for animations.
-- **Persistent Cart**: Stores cart items using local storage.
+- **Persistent Cart**: Stores cart items using redux state and local storage.
 
 ## 🛠️ Tech Stack
 

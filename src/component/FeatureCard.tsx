@@ -1,45 +1,4 @@
-// import React from "react";
-// import { Card, CardContent, CardMedia, Typography, Box } from "@mui/material";
 
-// interface FeatureCardProps {
-//   image: string;
-//   title: string;
-//   description: string;
-// }
-
-// const FeatureCard: React.FC<FeatureCardProps> = ({ image, title, description }) => {
-//   return (
-//     <Card
-//       sx={{
-//         borderRadius: "16px",
-//         overflow: "hidden",
-//         transition: "transform 0.3s ease-in-out",
-//         "&:hover": {
-//           transform: "scale(1.05)",
-//         },
-//       }}
-//     >
-//       <CardMedia
-//         component="img"
-//         height="180"
-//         image={image}
-
-//         alt={title}
-//         sx={{ objectFit: "cover" }}
-//       />
-//       <CardContent sx={{ textAlign: "center", p: 3 }}>
-//         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1, color: "#d32f2f" }}>
-//           {title}
-//         </Typography>
-//         <Typography variant="body2" color="text.secondary">
-//           {description}
-//         </Typography>
-//       </CardContent>
-//     </Card>
-//   );
-// };
-
-// export default FeatureCard;
 import React from "react";
 import { Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { motion } from "framer-motion";

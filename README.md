@@ -1,50 +1,47 @@
-# React + TypeScript + Vite
+# 🍕 Food Ordering App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern food ordering app built using **React, Tailwind CSS, Redux Toolkit, and MUI**. The app provides users with a seamless experience for browsing food items, adding them to the cart, and managing orders.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Responsive UI**: Fully optimized for mobile and desktop screens.
+- **Food Listing**: Displays food items with images, prices, and ratings.
+- **Cart Management**: Users can add/remove items from the cart.
+- **Driver Management**: Simulated driver assignment system.
+- **Smooth Animations**: Uses Framer Motion for animations.
+- **Persistent Cart**: Stores cart items using local storage.
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Frontend**: React, Tailwind CSS, Material UI (MUI)
+- **State Management**: Redux Toolkit
+- **Animations**: Framer Motion
+- **Optimizations**: React Memo,Memo,UseCallback for optimizations
 
-- Configure the top-level `parserOptions` property like this:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## 🏗️ Installation & Setup
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+1. **Clone the repository**
+   ```sh
+   git clone https://github.com/yourusername/food-ordering-app.git
+   cd food-ordering-app
+   ```
+2. **Install dependencies**
+   ```sh
+   npm install
+   ```
+3. **Start the development server**
+   ```sh
+   npm start
+   ```
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+
+
+
+
+## 🤝 Contributing
+
+Feel free to fork the repo and submit pull requests! 🚀
+

@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, CardContent, CardMedia, Typography, Box, Button } from "@mui/material";
 
 interface FoodCardProps {
@@ -11,16 +11,25 @@ interface FoodCardProps {
   hideAddToCart:boolean
 }
 
-const FoodCard: React.FC<FoodCardProps> = (props) => {
-  const handleAddToCart = () => {
-    // Retrieve existing cart or initialize an empty array
+const FoodCard = React.memo((props: FoodCardProps) => { 
+
+  // const handleAddToCart = () => {
+  //   // Retrieve existing cart or initialize an empty array
+  //   const existingCart = localStorage.getItem("cart");
+  //   let cart = existingCart ? JSON.parse(existingCart) : [];
+  //   // Add current item to cart
+  //   cart.push(props);
+  //   localStorage.setItem("cart", JSON.stringify(cart));
+  //   alert(`${props.name} added to cart`);
+  // };
+
+  const handleAddToCart = useCallback(() => {
     const existingCart = localStorage.getItem("cart");
     let cart = existingCart ? JSON.parse(existingCart) : [];
-    // Add current item to cart
     cart.push(props);
     localStorage.setItem("cart", JSON.stringify(cart));
     alert(`${props.name} added to cart`);
-  };
+  }, [props]);
 
   return (
     <Card sx={{ borderRadius: "16px", overflow: "hidden", m: 1 }}>

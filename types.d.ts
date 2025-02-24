@@ -18,3 +18,11 @@ declare module "*.svg" {
     message: string;
     sucess: boolean
   }
+
+
+export interface Restaurant {
+  name: string;
+  cuisines: string;
+  meanRating: number;
+  cost: number;
+}

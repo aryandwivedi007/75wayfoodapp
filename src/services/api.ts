@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/store";
 import { setTokens, resetTokens } from "../store/reducers/authReducer";
+import { Restaurant } from "../store/reducers/restorentReducer";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "http://localhost:5000/api",
@@ -85,7 +86,14 @@ export const api = createApi({
         body,
       }),
     }),
+     // ✅ RESTAURANT ENDPOINTS (NO AUTH)
+     getSuggestions: builder.query<string[], { name: string }>({
+      query: ({ name }) => `/suggest?name=${encodeURIComponent(name)}`,
+    }),
+    getRecommendations: builder.query<Restaurant[], { name: string }>({
+      query: ({ name }) => `/recommend?name=${encodeURIComponent(name)}`,
+    }),
   }),
 });
 
-export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useRefreshTokenMutation } = api;
+export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useRefreshTokenMutation,useGetRecommendationsQuery,useGetSuggestionsQuery } = api;

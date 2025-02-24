@@ -20,7 +20,7 @@ import GoogleIcon from "@mui/icons-material/Google";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login } from "../store/reducers/authReducer";
+import { useLoginMutation } from "../services/api";
 
 
 const LoginForm: React.FC = () => {
@@ -29,6 +29,7 @@ const LoginForm: React.FC = () => {
   const [openOTP, setOpenOTP] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [login, { isLoading }] = useLoginMutation();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(e.target.value);
@@ -46,16 +47,20 @@ const LoginForm: React.FC = () => {
   const handleOTPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOtp(e.target.value);
   };
-
-  const handleOTPSubmit = () => {
-    if (otp.trim().length === 4) {
-      dispatch(login());
-      setOpenOTP(false);
-      navigate("/");
-    } else {
-      alert("Please enter a 4-digit OTP");
-    }
-  };
+  // const handleOTPSubmit = async () => {
+  //   if (otp.trim().length === 4) {
+  //     try {
+  //       const response = await login({ otp }).unwrap(); // Call the login mutation with OTP
+  //       console.log("Login successful:", response);
+  //       navigate("/"); // Redirect on success
+  //     } catch (error) {
+  //       console.error("Login failed:", error);
+  //       alert("Invalid OTP. Please try again.");
+  //     }
+  //   } else {
+  //     alert("Please enter a 4-digit OTP");
+  //   }
+  // };
 
   const handleGoogleLogin = () => {
     dispatch(login());

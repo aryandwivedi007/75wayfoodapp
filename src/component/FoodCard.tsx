@@ -67,6 +67,6 @@ const FoodCard = React.memo((props: FoodCardProps) => {
       </CardContent>
     </Card>
   );
-};
+})
 
 export default FoodCard;

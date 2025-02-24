@@ -1,5 +1,4 @@
 
-
 // import React, { useState } from "react";
 // import {
 //   AppBar,
@@ -20,14 +19,15 @@
 // import { RootState } from "../store/store";
 // import { logout } from "../store/reducers/authReducer";
 
-
 // const Header: React.FC = () => {
 //   const [searchQuery, setSearchQuery] = useState("");
 //   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 //   const navigate = useNavigate();
 //   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+//   // Get partner applications from Redux (partner slice)
+//   const partnerApplications = useSelector((state: RootState) => state.partner.applications);
 //   const dispatch = useDispatch();
-//   console.log("is authenticated",isAuthenticated)
+
 //   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
 //     setAnchorEl(event.currentTarget);
 //   };
@@ -39,7 +39,15 @@
 //   const handleSearch = (e: React.FormEvent) => {
 //     e.preventDefault();
 //     if (searchQuery.trim()) {
-//       navigate(`/food?search=${encodeURIComponent(searchQuery)}`);
+//       // Check if any partner application restaurant name matches the query (case-insensitive)
+//       const matchedPartner = partnerApplications.find((app: any) =>
+//         app.restaurantName.toLowerCase().includes(searchQuery.toLowerCase())
+//       );
+//       if (matchedPartner) {
+//         navigate(`/restorents?search=${encodeURIComponent(searchQuery)}`);
+//       } else {
+//         navigate(`/food?search=${encodeURIComponent(searchQuery)}`);
+//       }
 //     }
 //   };
 
@@ -117,32 +125,20 @@
 //                 <Button
 //                   onClick={() => navigate("/signup")}
 //                   variant="contained"
-//                   sx={{
-//                     backgroundColor: "#ff4f5a",
-//                     "&:hover": { backgroundColor: "#e6444f" },
-//                   }}
+//                   sx={{ backgroundColor: "#ff4f5a", "&:hover": { backgroundColor: "#e6444f" } }}
 //                 >
 //                   Sign up
 //                 </Button>
 //               </>
 //             ) : (
-//               <Button
-//                 onClick={() => dispatch(logout())}
-//                 sx={{ color: "#ff4f5a", fontWeight: "bold" }}
-//               >
+//               <Button onClick={() => dispatch(logout())} sx={{ color: "#ff4f5a", fontWeight: "bold" }}>
 //                 Logout
 //               </Button>
 //             )}
-//             <IconButton
-//               onClick={() => handleProtectedNavigation("/orders")}
-//               sx={{ color: "#666" }}
-//             >
+//             <IconButton onClick={() => handleProtectedNavigation("/orders")} sx={{ color: "#666" }}>
 //               <MdOutlineWork size={24} />
 //             </IconButton>
-//             <IconButton
-//               onClick={() => handleProtectedNavigation("/orders")}
-//               sx={{ color: "#666" }}
-//             >
+//             <IconButton onClick={() => handleProtectedNavigation("/orders")} sx={{ color: "#666" }}>
 //               <IoMdNotificationsOutline size={24} />
 //             </IconButton>
 //             <IconButton onClick={handleMenu} sx={{ color: "#666" }}>
@@ -150,10 +146,8 @@
 //             </IconButton>
 //             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
 //               <MenuItem onClick={handleClose}>Profile</MenuItem>
-//               <MenuItem onClick={() => handleProtectedNavigation("/orders")}>
-//                 Orders
-//               </MenuItem>
-//               <MenuItem onClick={handleClose}>Settings</MenuItem>
+//               <MenuItem onClick={() => handleProtectedNavigation("/orders")}>Orders</MenuItem>
+//               <MenuItem onClick={()=>{navigate('/driver-dashboard')}}>Drivers</MenuItem>
 //             </Menu>
 //           </Box>
 //         </Toolbar>
@@ -163,7 +157,8 @@
 // };
 
 // export default Header;
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -174,6 +169,10 @@ import {
   MenuItem,
   Button,
   Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { IoMdNotificationsOutline } from "react-icons/io";
@@ -181,15 +180,15 @@ import { MdOutlineWork } from "react-icons/md";
 import { FaUserCircle, FaSearch, FaLocationArrow } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
-import { logout } from "../store/reducers/authReducer";
+import { resetTokens } from "../store/reducers/authReducer";
+import { useGetRecommendationsQuery, useGetSuggestionsQuery } from "../services/api";
 
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  // Get partner applications from Redux (partner slice)
-  const partnerApplications = useSelector((state: RootState) => state.partner.applications);
   const dispatch = useDispatch();
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -200,26 +199,24 @@ const Header: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // Check if any partner application restaurant name matches the query (case-insensitive)
-      const matchedPartner = partnerApplications.find((app: any) =>
-        app.restaurantName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      if (matchedPartner) {
-        navigate(`/restorents?search=${encodeURIComponent(searchQuery)}`);
-      } else {
-        navigate(`/food?search=${encodeURIComponent(searchQuery)}`);
-      }
-    }
-  };
+  const { data: suggestionsData } = useGetSuggestionsQuery(
+    { name: searchQuery },
+    { skip: searchQuery.length === 0 }
+  );
 
-  const handleProtectedNavigation = (path: string) => {
-    if (isAuthenticated) {
-      navigate(path);
-    } else {
-      navigate("/login");
+  useEffect(() => {
+    if (suggestionsData) {
+      setSuggestions(suggestionsData);
+    }
+  }, [suggestionsData]);
+
+  const handleRestaurantClick = (restaurant: string) => {
+    navigate(`/restaurant?name=${encodeURIComponent(restaurant)}&query=${encodeURIComponent(searchQuery)}`);
+  };
+  
+  const handleSuggestClick = () => {
+    if (searchQuery) {
+      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -234,39 +231,15 @@ const Header: React.FC = () => {
         }}
       >
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          {/* Logo + Location */}
-          <Box
-            component={Link}
-            to="/"
-            display="flex"
-            alignItems="center"
-            sx={{ textDecoration: "none", color: "#333" }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: "bold", color: "#ff4f5a" }}>
-              Foodigy
-            </Typography>
+          <Box component={Link} to="/" display="flex" alignItems="center" sx={{ textDecoration: "none", color: "#333" }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", color: "#ff4f5a" }}>Foodigy</Typography>
             <IconButton sx={{ color: "#666", marginLeft: 1 }}>
               <FaLocationArrow size={16} />
             </IconButton>
-            <Typography variant="body2" sx={{ color: "#666", marginLeft: "4px" }}>
-              Mohali, India
-            </Typography>
+            <Typography variant="body2" sx={{ color: "#666", marginLeft: "4px" }}>Mohali, India</Typography>
           </Box>
 
-          {/* Search Bar */}
-          <Box
-            component="form"
-            onSubmit={handleSearch}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              backgroundColor: "#f3f3f3",
-              padding: "8px 14px",
-              borderRadius: "8px",
-              flex: 1,
-              maxWidth: "500px",
-            }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center", backgroundColor: "#f3f3f3", padding: "8px 14px", borderRadius: "8px", flex: 1, maxWidth: "500px", position: "relative" }}>
             <FaSearch size={18} color="#666" />
             <InputBase
               placeholder="Search for restaurants, cuisine..."
@@ -274,35 +247,47 @@ const Header: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <Button onClick={handleSuggestClick} sx={{ marginLeft: "10px", fontWeight: "bold" }}>Suggest</Button>
           </Box>
 
-          {/* Navigation Icons */}
+          {suggestions.length > 0 && (
+            <Paper
+              sx={{
+                position: "absolute",
+                top: "60px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "500px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                zIndex: 10,
+                backgroundColor: "#fff",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+              }}
+            >
+              <List>
+                {suggestions.map((restaurant, index) => (
+                  <ListItem button key={index} onClick={() => handleRestaurantClick(restaurant)}>
+                    <ListItemText primary={restaurant} />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          )}
+
           <Box display="flex" alignItems="center" gap={2}>
             {!isAuthenticated ? (
               <>
-                <Button
-                  onClick={() => navigate("/login")}
-                  sx={{ color: "#ff4f5a", fontWeight: "bold" }}
-                >
-                  Login
-                </Button>
-                <Button
-                  onClick={() => navigate("/signup")}
-                  variant="contained"
-                  sx={{ backgroundColor: "#ff4f5a", "&:hover": { backgroundColor: "#e6444f" } }}
-                >
-                  Sign up
-                </Button>
+                <Button onClick={() => navigate("/login")} sx={{ color: "#ff4f5a", fontWeight: "bold" }}>Login</Button>
+                <Button onClick={() => navigate("/signup")} variant="contained" sx={{ backgroundColor: "#ff4f5a", "&:hover": { backgroundColor: "#e6444f" } }}>Sign up</Button>
               </>
             ) : (
-              <Button onClick={() => dispatch(logout())} sx={{ color: "#ff4f5a", fontWeight: "bold" }}>
-                Logout
-              </Button>
+              <Button onClick={() => dispatch(resetTokens())} sx={{ color: "#ff4f5a", fontWeight: "bold" }}>Logout</Button>
             )}
-            <IconButton onClick={() => handleProtectedNavigation("/orders")} sx={{ color: "#666" }}>
+            <IconButton onClick={() => navigate("/orders")} sx={{ color: "#666" }}>
               <MdOutlineWork size={24} />
             </IconButton>
-            <IconButton onClick={() => handleProtectedNavigation("/orders")} sx={{ color: "#666" }}>
+            <IconButton onClick={() => navigate("/notifications")} sx={{ color: "#666" }}>
               <IoMdNotificationsOutline size={24} />
             </IconButton>
             <IconButton onClick={handleMenu} sx={{ color: "#666" }}>
@@ -310,8 +295,8 @@ const Header: React.FC = () => {
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
               <MenuItem onClick={handleClose}>Profile</MenuItem>
-              <MenuItem onClick={() => handleProtectedNavigation("/orders")}>Orders</MenuItem>
-              <MenuItem onClick={()=>{navigate('/driver-dashboard')}}>Drivers</MenuItem>
+              <MenuItem onClick={() => navigate("/orders")}>Orders</MenuItem>
+              <MenuItem onClick={() => navigate("/driver-dashboard")}>Drivers</MenuItem>
             </Menu>
           </Box>
         </Toolbar>
@@ -321,4 +306,3 @@ const Header: React.FC = () => {
 };
 
 export default Header;
-

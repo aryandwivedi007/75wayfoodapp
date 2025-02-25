@@ -1,33 +1,64 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  Container,
   Box,
-  Paper,
-  Typography,
-  TextField,
   Button,
-  Link,
+  Paper,
+  TextField,
+  Typography,
+  Divider,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { motion } from "framer-motion";
+import { useRegisterMutation } from "../services/api";
+import PasswordInput from "./PasswordInput";
 
-const SignupForm: React.FC = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
+const validation = yup.object({
+  name: yup.string().required("Name is required"),
+  email: yup.string().email("Email is invalid").required("Email is required"),
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(5, "Minimum 5 chars are required")
+    .max(16, "Maximum 16 chars allowed"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Passwords must match")
+    .required("Confirm password is required"),
+});
+
+type FormData = typeof validation.__outputType;
+
+export default function SignupForm() {
+  const [registerUser] = useRegisterMutation();
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<FormData>({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    resolver: yupResolver(validation),
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically call an API to create the account.
-    console.log("Signup form data:", formData);
+  const onSubmit = async (data: FormData) => {
+    try {
+      await registerUser(data).unwrap();
+      toast.success("User registered successfully!");
+      navigate("/", { replace: true });
+    } catch (error: any) {
+      const validationError = error?.data?.data?.errors?.[0].msg;
+      toast.error(
+        validationError ?? error?.data?.message ?? "Something went wrong!"
+      );
+    }
   };
 
   return (
@@ -41,79 +72,88 @@ const SignupForm: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: 2,
       }}
     >
-      <Container maxWidth="sm">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            backgroundColor: "rgba(255,255,255,0.95)",
+          }}
         >
-          <Paper
-            elevation={6}
-            sx={{
-              p: 4,
-              borderRadius: 2,
-              backgroundColor: "rgba(255,255,255,0.95)",
-            }}
+          <Typography
+            variant="h4"
+            align="center"
+            gutterBottom
+            sx={{ color: "#ff4f5a", fontWeight: "bold" }}
           >
-            <Typography
-              variant="h4"
-              align="center"
-              gutterBottom
-              sx={{ color: "#ff4f5a", fontWeight: "bold" }}
-            >
-              Sign Up to Foodigy
-            </Typography>
-            <Typography variant="body1" align="center" gutterBottom>
-              Join India's leading food ordering platform for exclusive offers and delicious deals.
-            </Typography>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+            Sign Up for Foodigy
+          </Typography>
+          <Typography variant="body1" align="center" gutterBottom>
+            Create your account.
+          </Typography>
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
+              <TextField
+                fullWidth
+                required
+                label="Name"
+                variant="outlined"
+                {...register("name")}
+                error={Boolean(errors.name?.message)}
+                helperText={errors.name?.message}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                required
+                label="Email"
+                variant="outlined"
+                {...register("email")}
+                error={Boolean(errors.email?.message)}
+                helperText={errors.email?.message}
+                sx={{ mb: 2 }}
+              />
+              <PasswordInput
+                fullWidth
+                required
+                label="Password"
+                variant="outlined"
+                {...register("password")}
+                error={Boolean(errors.password?.message)}
+                helperText={errors.password?.message}
+                sx={{ mb: 2 }}
+              />
+              <PasswordInput
+                fullWidth
+                required
+                label="Confirm Password"
+                variant="outlined"
+                {...register("confirmPassword")}
+                error={Boolean(errors.confirmPassword?.message)}
+                helperText={errors.confirmPassword?.message}
+                sx={{ mb: 2 }}
+              />
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <TextField
-                  fullWidth
-                  required
-                  label="Full Name"
-                  name="fullName"
-                  variant="outlined"
-                  margin="normal"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                />
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-              >
-                <TextField
-                  fullWidth
-                  required
-                  label="Email Address"
-                  name="email"
-                  type="email"
-                  variant="outlined"
-                  margin="normal"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <Button
                   type="submit"
-                  fullWidth
                   variant="contained"
+                  fullWidth
+                  disabled={!isValid}
                   sx={{
-                    mt: 3,
                     backgroundColor: "#ff4f5a",
                     "&:hover": { backgroundColor: "#e6444f" },
                   }}
@@ -122,21 +162,13 @@ const SignupForm: React.FC = () => {
                 </Button>
               </motion.div>
             </Box>
-            <Typography variant="body2" align="center" sx={{ mt: 2, color: "#666" }}>
-              Already have an account?{" "}
-              <Link
-                component={RouterLink}
-                to="/login"
-                sx={{ color: "#ff4f5a", fontWeight: "bold" }}
-              >
-                Login here
-              </Link>
-            </Typography>
-          </Paper>
-        </motion.div>
-      </Container>
+          </motion.div>
+          <Divider sx={{ my: 3 }} />
+          <Typography align="center">
+            Already have an account? <NavLink to="/login" style={{ color: "#ff4f5a" }}>Sign in</NavLink>
+          </Typography>
+        </Paper>
+      </motion.div>
     </Box>
   );
-};
-
-export default SignupForm;
+}

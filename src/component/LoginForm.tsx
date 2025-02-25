@@ -1,75 +1,57 @@
-
-import { motion } from "framer-motion";
-
-import React, { useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  Container,
   Box,
-  Paper,
-  Typography,
-  TextField,
   Button,
+  Paper,
+  TextField,
+  Typography,
   Divider,
-  Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
-import GoogleIcon from "@mui/icons-material/Google";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useForm } from "react-hook-form";
+import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { motion } from "framer-motion";
 import { useLoginMutation } from "../services/api";
+import PasswordInput from "./PasswordInput";
 
+const validation = yup.object({
+  email: yup.string().email("Email is invalid").required("Email is required"),
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(5, "Minimum 5 chars are required")
+    .max(16, "Maximum 16 chars allowed"),
+});
 
-const LoginForm: React.FC = () => {
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [openOTP, setOpenOTP] = useState(false);
+type FormData = typeof validation.__outputType;
+
+export default function LoginForm() {
+  const [loginUser] = useLoginMutation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [login, { isLoading }] = useLoginMutation();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<FormData>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    resolver: yupResolver(validation),
+  });
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value);
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (phone.trim().length === 10) {
-      setOpenOTP(true);
-    } else {
-      alert("Please enter a valid 10-digit phone number");
+  const onSubmit = async (data: FormData) => {
+    try {
+      await loginUser(data).unwrap();
+      toast.success("User logged in successfully!");
+      navigate("/", { replace: true });
+    } catch (error: any) {
+      const validationError = error?.data?.data?.errors?.[0].msg;
+      toast.error(
+        validationError ?? error?.data?.message ?? "Something went wrong!"
+      );
     }
-  };
-
-  const handleOTPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOtp(e.target.value);
-  };
-  // const handleOTPSubmit = async () => {
-  //   if (otp.trim().length === 4) {
-  //     try {
-  //       const response = await login({ otp }).unwrap(); // Call the login mutation with OTP
-  //       console.log("Login successful:", response);
-  //       navigate("/"); // Redirect on success
-  //     } catch (error) {
-  //       console.error("Login failed:", error);
-  //       alert("Invalid OTP. Please try again.");
-  //     }
-  //   } else {
-  //     alert("Please enter a 4-digit OTP");
-  //   }
-  // };
-
-  const handleGoogleLogin = () => {
-    dispatch(login());
-    navigate("/");
-  };
-
-  const handleFacebookLogin = () => {
-    dispatch(login());
-    navigate("/");
   };
 
   return (
@@ -85,141 +67,81 @@ const LoginForm: React.FC = () => {
         justifyContent: "center",
       }}
     >
-      <Container maxWidth="sm">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            backgroundColor: "rgba(255,255,255,0.95)",
+          }}
         >
-          <Paper
-            elevation={6}
-            sx={{
-              p: 4,
-              borderRadius: 2,
-              backgroundColor: "rgba(255,255,255,0.95)",
-            }}
+          <Typography
+            variant="h4"
+            align="center"
+            gutterBottom
+            sx={{ color: "#ff4f5a", fontWeight: "bold" }}
           >
-            <Typography
-              variant="h4"
-              align="center"
-              gutterBottom
-              sx={{ color: "#ff4f5a", fontWeight: "bold" }}
-            >
-              Login to Foodigy
-            </Typography>
-            <Typography variant="body1" align="center" gutterBottom>
-              Join India's leading food ordering platform for exclusive offers and delicious deals.
-            </Typography>
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Box component="form" onSubmit={handleLogin} sx={{ mt: 3 }}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Phone Number"
-                  variant="outlined"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  sx={{ mb: 2 }}
-                />
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      backgroundColor: "#ff4f5a",
-                      "&:hover": { backgroundColor: "#e6444f" },
-                    }}
-                  >
-                    Login with Phone
-                  </Button>
-                </motion.div>
-              </Box>
-            </motion.div>
-            <Divider sx={{ my: 3 }}>OR</Divider>
-            <Stack spacing={2}>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  startIcon={<GoogleIcon />}
-                  onClick={handleGoogleLogin}
-                  sx={{
-                    borderColor: "#ff4f5a",
-                    color: "#ff4f5a",
-                    "&:hover": { borderColor: "#e6444f", color: "#e6444f" },
-                  }}
-                >
-                  Continue with Google
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  startIcon={<FacebookIcon />}
-                  onClick={handleFacebookLogin}
-                  sx={{
-                    borderColor: "#ff4f5a",
-                    color: "#ff4f5a",
-                    "&:hover": { borderColor: "#e6444f", color: "#e6444f" },
-                  }}
-                >
-                  Continue with Facebook
-                </Button>
-              </motion.div>
-            </Stack>
-          </Paper>
-        </motion.div>
-      </Container>
-
-      {/* OTP Dialog */}
-      <Dialog open={openOTP} onClose={() => setOpenOTP(false)}>
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <DialogTitle>Enter OTP</DialogTitle>
-          <DialogContent>
-            <Typography variant="body1">
-              Please enter the 4-digit OTP sent to {phone}
-            </Typography>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="OTP"
-              type="text"
-              fullWidth
-              value={otp}
-              onChange={handleOTPChange}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenOTP(false)} color="secondary">
-              Cancel
-            </Button>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                onClick={handleOTPSubmit}
-                variant="contained"
-                sx={{ backgroundColor: "#ff4f5a", "&:hover": { backgroundColor: "#e6444f" } }}
+            Login to Foodigy
+          </Typography>
+          <Typography variant="body1" align="center" gutterBottom>
+            Sign in to continue.
+          </Typography>
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
+              <TextField
+                fullWidth
+                required
+                label="Email"
+                variant="outlined"
+                {...register("email")}
+                error={Boolean(errors.email?.message)}
+                helperText={errors.email?.message}
+                sx={{ mb: 2 }}
+              />
+              <PasswordInput
+                fullWidth
+                required
+                label="Password"
+                variant="outlined"
+                {...register("password")}
+                error={Boolean(errors.password?.message)}
+                helperText={errors.password?.message}
+                sx={{ mb: 2 }}
+              />
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Submit OTP
-              </Button>
-            </motion.div>
-          </DialogActions>
-        </motion.div>
-      </Dialog>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={!isValid}
+                  sx={{
+                    backgroundColor: "#ff4f5a",
+                    "&:hover": { backgroundColor: "#e6444f" },
+                  }}
+                >
+                  Log in
+                </Button>
+              </motion.div>
+            </Box>
+          </motion.div>
+          <Divider sx={{ my: 3 }} />
+          <Typography align="center">
+            Don&apos;t have an account? <NavLink to="/signup" style={{ color: "#ff4f5a" }}>Sign up</NavLink>
+          </Typography>
+        </Paper>
+      </motion.div>
     </Box>
   );
-};
-
-export default LoginForm;
+}

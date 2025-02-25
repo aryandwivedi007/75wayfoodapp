@@ -4,7 +4,7 @@ import { setTokens, resetTokens } from "../store/reducers/authReducer";
 import { Restaurant } from "../store/reducers/restorentReducer";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api",
+  baseUrl: "http://localhost:8000/api",
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.accessToken;
     if (token) {
@@ -81,19 +81,29 @@ export const api = createApi({
     }),
     refreshToken: builder.mutation<{ accessToken: string; refreshToken: string }, { refreshToken: string }>({
       query: (body) => ({
-        url: "/users/refresh-token",
+        url: "/users/refreshToken",
         method: "POST",
         body,
       }),
     }),
-     // ✅ RESTAURANT ENDPOINTS (NO AUTH)
-     getSuggestions: builder.query<string[], { name: string }>({
-      query: ({ name }) => `/suggest?name=${encodeURIComponent(name)}`,
+
+     // ✅ Fetch restaurant recommendations
+     getRecommendations: builder.query<Restaurant[], string>({
+      query: (restaurantName) => `/restorent/recommend?name=${restaurantName}`,
     }),
-    getRecommendations: builder.query<Restaurant[], { name: string }>({
-      query: ({ name }) => `/recommend?name=${encodeURIComponent(name)}`,
+
+    // ✅ Fetch restaurant suggestions (autocomplete)
+    getSuggestions: builder.query<string[], string>({
+      query: (query) => `/restorent/suggest?name=${query}`,
     }),
+
+     
   }),
 });
 
-export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useRefreshTokenMutation,useGetRecommendationsQuery,useGetSuggestionsQuery } = api;
+export const { useMeQuery, 
+  useLoginMutation, useLogoutMutation, 
+  useRegisterMutation, useRefreshTokenMutation,useGetRecommendationsQuery
+  ,useGetSuggestionsQuery,
+  
+ } = api;

@@ -14,10 +14,12 @@ import Restorents from "./pages/restorents";
 import Home from "./pages/homepage";
 import Food from "./pages/foodpage";
 import DriverDashboard from "./pages/DriverDashboard";
-
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "./error/ErrorFallback";
 function App() {
   useNotificationPermission();
   return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
     <AuthProvider>
     <Router>
       <Header /> {/* Keep Header outside Routes */}
@@ -33,6 +35,7 @@ function App() {
       </Routes>
     </Router>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
